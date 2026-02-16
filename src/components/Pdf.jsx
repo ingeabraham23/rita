@@ -15,24 +15,48 @@ function Pdf() {
     };
 
     const generatePdf = (orientation) => {
-        const pdf = new jsPDF("p", "pt", "a4");
+        const pdf = new jsPDF({
+            orientation: "p",
+            unit: "pt",
+            format: "a4",
+            compress: true,
+        });
+
         const pageWidth = pdf.internal.pageSize.getWidth();
-        const margin = 20;
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        let imgWidth, imgHeight, blockWidth, blockHeight;
 
         if (orientation === "horizontal") {
-            const imgWidth = (pageWidth - margin * 3) / 2;
-            const imgHeight = imgWidth * 0.63;
-            if (frontImg) pdf.addImage(frontImg, "PNG", margin, margin, imgWidth, imgHeight);
-            if (backImg) pdf.addImage(backImg, "PNG", margin * 2 + imgWidth, margin, imgWidth, imgHeight);
-        } else if (orientation === "vertical") {
-            const imgWidth = pageWidth - margin * 2;
-            const imgHeight = imgWidth * 0.63;
-            if (frontImg) pdf.addImage(frontImg, "PNG", margin, margin, imgWidth, imgHeight);
-            if (backImg) pdf.addImage(backImg, "PNG", margin, margin * 2 + imgHeight, imgWidth, imgHeight);
+            imgWidth = (pageWidth * 0.8) / 2;
+            imgHeight = imgWidth * 0.63;
+            blockWidth = imgWidth * 2 + 20;
+            blockHeight = imgHeight;
+        } else {
+            imgWidth = pageWidth * 0.8;
+            imgHeight = imgWidth * 0.63;
+            blockWidth = imgWidth;
+            blockHeight = imgHeight * 2 + 20;
+        }
+
+        const startX = (pageWidth - blockWidth) / 2;
+        const startY = (pageHeight - blockHeight) / 2;
+
+        if (frontImg)
+            pdf.addImage(frontImg, "JPG", startX, startY, imgWidth, imgHeight, undefined, "FAST");
+
+        if (backImg) {
+            if (orientation === "horizontal") {
+                pdf.addImage(backImg, "JPG", startX + imgWidth + 20, startY, imgWidth, imgHeight, undefined, "FAST");
+            } else {
+                pdf.addImage(backImg, "JPG", startX, startY + imgHeight + 20, imgWidth, imgHeight, undefined, "FAST");
+            }
         }
 
         pdf.save(`ine_${orientation}.pdf`);
     };
+
+
 
     const generatePng = (orientation) => {
         const canvas = document.createElement("canvas");

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useRef, useState, useEffect } from "react";
 
 function Recortar() {
@@ -92,33 +93,48 @@ function Recortar() {
         const frameX = Math.round((width - frameWidth) / 2);
         const frameY = Math.round((height - frameHeight) / 2);
 
+        // Escala entre canvas visible y foto real
+        const scaleX = image.width / (image.width * zoom);
+        const scaleY = image.height / (image.height * zoom);
+
+        const realFrameW = frameWidth / zoom;
+        const realFrameH = frameHeight / zoom;
+
+        const realX =
+            image.width / 2 -
+            realFrameW / 2 -
+            offset.x / zoom;
+
+        const realY =
+            image.height / 2 -
+            realFrameH / 2 -
+            offset.y / zoom;
+
         const tempCanvas = document.createElement("canvas");
-        tempCanvas.width = frameWidth;
-        tempCanvas.height = frameHeight;
-        const tempCtx = tempCanvas.getContext("2d");
+        tempCanvas.width = realFrameW;
+        tempCanvas.height = realFrameH;
 
-        const newWidth = image.width * zoom;
-        const newHeight = image.height * zoom;
+        const ctx = tempCanvas.getContext("2d");
 
-        // Dibujamos la imagen en el tempCanvas **con las mismas coordenadas que en el canvas principal**
-        // Y recortamos el área del marco usando los parámetros sx, sy, sw, sh
-        // Primero creamos un canvas auxiliar del tamaño del canvas principal
-        const auxCanvas = document.createElement("canvas");
-        auxCanvas.width = width;
-        auxCanvas.height = height;
-        const auxCtx = auxCanvas.getContext("2d");
-
-        auxCtx.save();
-        auxCtx.translate(width / 2 + offset.x, height / 2 + offset.y);
-        auxCtx.rotate(rotation);
-        auxCtx.drawImage(image, -newWidth / 2, -newHeight / 2, newWidth, newHeight);
-        auxCtx.restore();
-
-        // Ahora recortamos solo el área del marco
-        tempCtx.drawImage(auxCanvas, frameX, frameY, frameWidth, frameHeight, 0, 0, frameWidth, frameHeight);
+        ctx.save();
+        ctx.translate(realFrameW / 2, realFrameH / 2);
+        ctx.rotate(rotation);
+        ctx.drawImage(
+            image,
+            realX,
+            realY,
+            realFrameW,
+            realFrameH,
+            -realFrameW / 2,
+            -realFrameH / 2,
+            realFrameW,
+            realFrameH
+        );
+        ctx.restore();
 
         return tempCanvas.toDataURL("image/png");
     };
+
 
 
     const handleCrop = () => {
